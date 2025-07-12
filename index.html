@@ -369,6 +369,8 @@ let isEditMode = false;
             actors[activeActor][activePlatform] = newPermissionsForCurrentActor;
             await saveMatrixToSheetDB();
             setEditMode(false);
+            await fetchMatrixFromSheetDB();
+            activeActor = Object.keys(actors)[0];
             renderContent();
         });
 
