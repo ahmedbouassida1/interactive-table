@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'DM Sans', sans-serif;
-            background-color: #e6fafe; /* Updated page background color */
+            background-color: #e6fafe;
             padding: 1.5rem;
         }
         .tab-active {
@@ -25,29 +25,77 @@
         .table-header-text {
             color: #333365;
         }
-        /* Updated table row separator color */
         .divide-y > :not([hidden]) ~ :not([hidden]) {
             border-color: #d9d9fe;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #22c55e;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
         }
     </style>
 </head>
 <body>
     <div id="privilege-matrix" class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div class="p-6 sm:p-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 mb-2">Tableau des Privilèges et Accès</h1>
+            <div class="flex justify-between items-center mb-2">
+                 <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">Tableau des Privilèges et Accès</h1>
+                 <button id="edit-button" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                 </button>
+            </div>
             <p class="text-gray-500">Naviguez entre les acteurs et les plateformes pour voir les permissions.</p>
         </div>
 
-        <!-- Main Actor Tabs -->
         <div class="px-6 sm:px-8 border-b border-gray-200">
             <nav id="main-tabs" class="flex flex-wrap -mb-px" aria-label="Tabs">
-                <!-- Actor tabs will be inserted here by JavaScript -->
             </nav>
         </div>
 
-        <!-- Content Area -->
         <div id="tab-content" class="p-6 sm:p-8">
-            <!-- Actor-specific content will be rendered here -->
+        </div>
+        
+        <div id="edit-controls-container" class="p-6 sm:p-8 flex justify-between items-center" style="display: none;">
+            <button id="add-functionality-button" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors">Ajouter une fonctionnalité</button>
+            <div class="flex items-center space-x-4">
+                <button id="reset-button" class="text-sm font-medium text-gray-600 hover:text-gray-800">Réinitialiser</button>
+                <button id="cancel-button" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Annuler</button>
+                <button id="save-button" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Enregistrer</button>
+            </div>
         </div>
     </div>
 
@@ -57,144 +105,35 @@
     </footer>
 
     <script>
-        // --- Master Lists of Functionalities for Consistency ---
-        const webFunctionalities = [
-            "Authentification (Web)",
-            "Gestion des Utilisateurs",
-            "Visualisation Géolocalisée Appareils",
-            "Planification Interventions",
-            "Supervision Interventions",
-            "Attribuer des interventions",
-            "Consultation Historique Interventions",
-            "Export Rapports Interventions",
-            "Notifications & Alertes (Web)",
-            "Création/Approbation Actualités",
-            "Reporting",
-            "Enregistrement des chauffe-eaux fabriqués",
-            "Déclaration des ventes"
-        ];
-
-        const mobileFunctionalities = [
-            "Authentification (Mobile)",
-            "Notifications & Alertes (Mobile)",
-            "Consultation Actualités (Mobile)",
-            "Enregistrement Appareils",
-            "Exécution Interventions",
-            "Suivi détaillé Interventions",
-            "Scan de QR Code",
-            "Consultation Historique Interventions (Mobile)",
-            "Déclaration des Ventes"
-        ];
-
-        // --- Data structure for actors and their permissions ---
-        const actors = {
-            "ANME": {
-                web: {
-                    "Authentification (Web)": true,
-                    "Visualisation Géolocalisée Appareils": true,
-                    "Supervision Interventions": false,
-                },
-                mobile: {
-                    "Authentification (Mobile)": true,
-                    "Notifications & Alertes (Mobile)": true,
-                    "Enregistrement Appareils": true,
-                }
-            },
-            "Usine": {
-                web: {
-                    "Authentification (Web)": true,
-                    "Enregistrement des chauffe-eaux fabriqués": true,
-                    "Reporting": true,
-                },
-                mobile: {}
-            },
-            "Administrateur Système": {
-                web: {
-                    "Authentification (Web)": true,
-                    "Gestion des Utilisateurs": true,
-                    "Planification Interventions": true,
-                    "Supervision Interventions": true,
-                    "Déclaration des ventes": true,
-                    "Reporting": true,
-                    "Attribuer des interventions": true,
-                    "Consultation Historique Interventions": true,
-                    "Export Rapports Interventions": true,
-                    "Notifications & Alertes (Web)": true,
-                },
-                mobile: {
-                    "Authentification (Mobile)": true,
-                    "Notifications & Alertes (Mobile)": true,
-                    "Enregistrement Appareils": true,
-                    "Déclaration des Ventes": true,
-                }
-            },
-            "Installateur Agréé": {
-                web: {
-                    "Authentification (Web)": true,
-                    "Visualisation Géolocalisée Appareils": true,
-                    "Planification Interventions": true,
-                    "Supervision Interventions": false,
-                    "Consultation Historique Interventions": true,
-                    "Export Rapports Interventions": true,
-                    "Notifications & Alertes (Web)": true,
-                    "Création/Approbation Actualités": true,
-                    "Déclaration des ventes": true,
-                },
-                mobile: {
-                    "Authentification (Mobile)": true,
-                    "Exécution Interventions": true,
-                    "Suivi détaillé Interventions": true,
-                    "Scan de QR Code": true,
-                    "Consultation Historique Interventions (Mobile)": true,
-                    "Notifications & Alertes (Mobile)": true,
-                    "Consultation Actualités (Mobile)": true,
-                    "Déclaration des Ventes": true,
-                }
-            },
-            "Réparateur Agréé": {
-                web: {
-                    "Authentification (Web)": true,
-                    "Visualisation Géolocalisée Appareils": true,
-                    "Planification Interventions": true,
-                    "Supervision Interventions": false,
-                    "Consultation Historique Interventions": true,
-                    "Export Rapports Interventions": true,
-                    "Notifications & Alertes (Web)": true,
-                    "Création/Approbation Actualités": true,
-                },
-                mobile: {
-                    "Authentification (Mobile)": true,
-                    "Exécution Interventions": true,
-                    "Suivi détaillé Interventions": true,
-                    "Scan de QR Code": true,
-                    "Consultation Historique Interventions (Mobile)": true,
-                    "Notifications & Alertes (Mobile)": true,
-                    "Consultation Actualités (Mobile)": true,
-                    "Déclaration des Ventes": false,
-                }
-            }
+        const originalData = {
+            webFunctionalities: [ "Authentification (Web)", "Gestion des Utilisateurs", "Visualisation Géolocalisée Appareils", "Planification Interventions", "Supervision Interventions", "Attribuer des interventions", "Consultation Historique Interventions", "Export Rapports Interventions", "Notifications & Alertes (Web)", "Création/Approbation Actualités", "Reporting", "Enregistrement des chauffe-eaux fabriqués", "Déclaration des ventes" ],
+            mobileFunctionalities: [ "Authentification (Mobile)", "Notifications & Alertes (Mobile)", "Consultation Actualités (Mobile)", "Enregistrement Appareils", "Exécution Interventions", "Suivi détaillé Interventions", "Scan de QR Code", "Consultation Historique Interventions (Mobile)", "Déclaration des Ventes" ],
+            actors: { "ANME": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true } }, "Usine": { web: { "Authentification (Web)": true, "Enregistrement des chauffe-eaux fabriqués": true, "Reporting": true }, mobile: {} }, "Administrateur Système": { web: { "Authentification (Web)": true, "Gestion des Utilisateurs": true, "Planification Interventions": true, "Supervision Interventions": true, "Déclaration des ventes": true, "Reporting": true, "Attribuer des interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true, "Déclaration des Ventes": true } }, "Installateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true, "Déclaration des ventes": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true, "Déclaration des Ventes": true } }, "Réparateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true } } }
         };
+
+        let webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+        let mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
+        let actors = JSON.parse(JSON.stringify(originalData.actors));
+        let dataBackup = {};
 
         const mainTabsContainer = document.getElementById('main-tabs');
         const contentContainer = document.getElementById('tab-content');
+        const editControlsContainer = document.getElementById('edit-controls-container');
+        
         let activeActor = Object.keys(actors)[0];
         let activePlatform = 'web';
-        let sortOrder = 'none'; // 'none', 'desc' (valid first), 'asc' (invalid first)
+        let sortOrder = 'none';
+        let isEditMode = false;
 
         function renderContent() {
             const actorPermissions = actors[activeActor][activePlatform];
             let masterList = [...(activePlatform === 'web' ? webFunctionalities : mobileFunctionalities)];
 
-            // Sorting logic
-            if (sortOrder !== 'none') {
+            if (sortOrder !== 'none' && !isEditMode) {
                 masterList.sort((a, b) => {
                     const accessA = actorPermissions[a] || false;
                     const accessB = actorPermissions[b] || false;
-                    if (sortOrder === 'desc') {
-                        return (accessB - accessA); // true (1) comes before false (0)
-                    } else {
-                        return (accessA - accessB); // false (0) comes before true (1)
-                    }
+                    return sortOrder === 'desc' ? (accessB - accessA) : (accessA - accessB);
                 });
             }
 
@@ -206,7 +145,7 @@
                     </nav>
                 </div>
             `;
-
+            
             let tableHTML = '<p class="text-gray-500">Aucune fonctionnalité pour cette plateforme.</p>';
             if (masterList.length > 0) {
                 tableHTML = `
@@ -218,23 +157,28 @@
                                     <th scope="col" class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
                                         <div class="table-header-text flex items-center justify-center space-x-2">
                                             <span>Accès</span>
-                                            <button id="sort-button" class="p-1 rounded-full hover:bg-indigo-200">
+                                            <button id="sort-button" class="p-1 rounded-full hover:bg-indigo-200 ${isEditMode ? 'hidden' : ''}">
                                                 <svg class="w-4 h-4" style="color: #333365;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
                                             </button>
                                         </div>
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y">
-                                ${masterList.map(featureName => {
+                            <tbody class="bg-white divide-y" id="features-tbody">
+                                ${masterList.map((featureName) => {
                                     const hasAccess = actorPermissions[featureName] || false;
                                     return `
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">${featureName}</td>
+                                        <tr data-feature-name="${featureName}">
+                                            <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">
+                                                ${isEditMode ? `<input type="text" value="${featureName}" class="w-full p-1 border rounded feature-name-input" />` : featureName}
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                ${hasAccess 
-                                                    ? '<span class="text-green-600 font-bold text-2xl">✓</span>' 
-                                                    : '<span class="text-red-500 font-bold text-2xl">✗</span>'}
+                                                ${isEditMode ? `
+                                                    <label class="switch">
+                                                        <input type="checkbox" ${hasAccess ? 'checked' : ''} class="access-toggle">
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                ` : (hasAccess ? '<span class="text-green-600 font-bold text-2xl">✓</span>' : '<span class="text-red-500 font-bold text-2xl">✗</span>')}
                                             </td>
                                         </tr>
                                     `;
@@ -247,17 +191,12 @@
             contentContainer.innerHTML = subTabsHTML + tableHTML;
             renderMainTabs();
             
-            // Add event listener to the new sort button
-            document.getElementById('sort-button').addEventListener('click', () => {
-                if (sortOrder === 'none') {
-                    sortOrder = 'desc';
-                } else if (sortOrder === 'desc') {
-                    sortOrder = 'asc';
-                } else {
-                    sortOrder = 'none';
-                }
-                renderContent();
-            });
+            if (!isEditMode) {
+                document.getElementById('sort-button').addEventListener('click', () => {
+                    sortOrder = sortOrder === 'none' ? 'desc' : (sortOrder === 'desc' ? 'asc' : 'none');
+                    renderContent();
+                });
+            }
         }
         
         function renderMainTabs() {
@@ -268,18 +207,87 @@
             `).join('');
         }
 
-        window.setActor = function(actorName) {
-            activeActor = actorName;
-            activePlatform = 'web';
-            sortOrder = 'none'; // Reset sort when changing actor
+        function setEditMode(enabled) {
+            isEditMode = enabled;
+            sortOrder = 'none';
+            editControlsContainer.style.display = enabled ? 'flex' : 'none';
+            if (enabled) {
+                dataBackup = {
+                    actors: JSON.parse(JSON.stringify(actors)),
+                    webFunctionalities: JSON.parse(JSON.stringify(webFunctionalities)),
+                    mobileFunctionalities: JSON.parse(JSON.stringify(mobileFunctionalities))
+                };
+            }
             renderContent();
         }
 
-        window.setPlatform = function(platformName) {
-            activePlatform = platformName;
-            sortOrder = 'none'; // Reset sort when changing platform
+        window.setActor = (actorName) => { if (!isEditMode) { activeActor = actorName; activePlatform = 'web'; renderContent(); } }
+        window.setPlatform = (platformName) => { if (!isEditMode) { activePlatform = platformName; renderContent(); } }
+
+        document.getElementById('edit-button').addEventListener('click', () => setEditMode(true));
+        document.getElementById('cancel-button').addEventListener('click', () => {
+            actors = dataBackup.actors;
+            webFunctionalities = dataBackup.webFunctionalities;
+            mobileFunctionalities = dataBackup.mobileFunctionalities;
+            setEditMode(false);
+        });
+        document.getElementById('reset-button').addEventListener('click', () => {
+            actors = JSON.parse(JSON.stringify(originalData.actors));
+            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
             renderContent();
-        }
+        });
+
+        document.getElementById('add-functionality-button').addEventListener('click', () => {
+            const tbody = document.getElementById('features-tbody');
+            const newRow = document.createElement('tr');
+            newRow.dataset.isNew = "true";
+            newRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">
+                    <input type="text" placeholder="Nouvelle fonctionnalité" class="w-full p-1 border rounded feature-name-input" />
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                    <label class="switch">
+                        <input type="checkbox" class="access-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+        });
+
+        document.getElementById('save-button').addEventListener('click', () => {
+            const rows = document.querySelectorAll('#features-tbody tr');
+            const newPermissionsForCurrentActor = {};
+            
+            rows.forEach(row => {
+                const nameInput = row.querySelector('.feature-name-input');
+                const accessToggle = row.querySelector('.access-toggle');
+                const newName = nameInput.value.trim();
+                const originalName = row.dataset.featureName;
+                const hasAccess = accessToggle.checked;
+
+                if (row.dataset.isNew === "true") {
+                    if (newName) {
+                        const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
+                        if (!masterList.includes(newName)) {
+                            masterList.push(newName);
+                        }
+                        Object.keys(actors).forEach(actor => {
+                            actors[actor][activePlatform][newName] = (actor === activeActor) ? hasAccess : false;
+                        });
+                        newPermissionsForCurrentActor[newName] = hasAccess;
+                    }
+                } else {
+                    const currentName = originalName;
+                    newPermissionsForCurrentActor[currentName] = hasAccess;
+                }
+            });
+            
+            actors[activeActor][activePlatform] = newPermissionsForCurrentActor;
+
+            setEditMode(false);
+        });
 
         renderContent();
     </script>
