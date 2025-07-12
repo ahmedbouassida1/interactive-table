@@ -121,35 +121,73 @@
             actors: { "ANME": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true } }, "Usine": { web: { "Authentification (Web)": true, "Enregistrement des chauffe-eaux fabriqués": true, "Reporting": true }, mobile: {} }, "Administrateur Système": { web: { "Authentification (Web)": true, "Gestion des Utilisateurs": true, "Planification Interventions": true, "Supervision Interventions": true, "Déclaration des ventes": true, "Reporting": true, "Attribuer des interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true, "Déclaration des Ventes": true } }, "Installateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true, "Déclaration des ventes": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true, "Déclaration des Ventes": true } }, "Réparateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true } } }
         };
 
-        // Load from localStorage if available
-        let webFunctionalities, mobileFunctionalities, actors;
-        if (localStorage.getItem('privMatrixActors')) {
-            actors = JSON.parse(localStorage.getItem('privMatrixActors'));
-        } else {
-            actors = JSON.parse(JSON.stringify(originalData.actors));
-        }
-        if (localStorage.getItem('privMatrixWeb')) {
-            webFunctionalities = JSON.parse(localStorage.getItem('privMatrixWeb'));
-        } else {
-            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
-        }
-        if (localStorage.getItem('privMatrixMobile')) {
-            mobileFunctionalities = JSON.parse(localStorage.getItem('privMatrixMobile'));
-        } else {
-            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
-        }
+        // SheetDB API endpoint
+        const SHEETDB_API = "https://sheetdb.io/api/v1/2tn3l6sqsyhrs";
+
+        let webFunctionalities = [], mobileFunctionalities = [], actors = {};
         let dataBackup = {};
+
+        // Helper: fetch privilege matrix from SheetDB
+        async function fetchMatrixFromSheetDB() {
+            try {
+                const res = await fetch(SHEETDB_API + "/search?key=type&value=matrix");
+                const data = await res.json();
+                if (data && data.length > 0 && data[0].json) {
+                    const parsed = JSON.parse(data[0].json);
+                    actors = parsed.actors;
+                    webFunctionalities = parsed.webFunctionalities;
+                    mobileFunctionalities = parsed.mobileFunctionalities;
+                } else {
+                    // If not found, use originalData
+                    actors = JSON.parse(JSON.stringify(originalData.actors));
+                    webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+                    mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
+                }
+            } catch (e) {
+                // On error, fallback to originalData
+                actors = JSON.parse(JSON.stringify(originalData.actors));
+                webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+                mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
+            }
+        }
+
+        // Helper: save privilege matrix to SheetDB
+        async function saveMatrixToSheetDB() {
+            const payload = {
+                type: "matrix",
+                json: JSON.stringify({ actors, webFunctionalities, mobileFunctionalities })
+            };
+            // Upsert: delete old, then add new (SheetDB free plan limitation)
+            await fetch(SHEETDB_API + "/type/matrix", { method: "DELETE" });
+            await fetch(SHEETDB_API, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify([payload])
+            });
+        }
+
+        // Helper: reset matrix in SheetDB to originalData
+        async function resetMatrixInSheetDB() {
+            actors = JSON.parse(JSON.stringify(originalData.actors));
+            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
+            await saveMatrixToSheetDB();
+        }
 
         const mainTabsContainer = document.getElementById('main-tabs');
         const contentContainer = document.getElementById('tab-content');
         const editControlsContainer = document.getElementById('edit-controls-container');
         
-        let activeActor = Object.keys(actors)[0];
-        let activePlatform = 'web';
-        let sortOrder = 'none';
-        let isEditMode = false;
+let activeActor = null;
+let activePlatform = 'web';
+let sortOrder = 'none';
+let isEditMode = false;
 
         function renderContent() {
+            if (!activeActor || !actors[activeActor]) {
+                contentContainer.innerHTML = '<p class="text-gray-500">Chargement des données...</p>';
+                return;
+            }
             const actorPermissions = actors[activeActor][activePlatform];
             let masterList = [...(activePlatform === 'web' ? webFunctionalities : mobileFunctionalities)];
 
@@ -256,21 +294,18 @@
             setEditMode(true);
             if (editBtnCircle) editBtnCircle.classList.add('edit-btn-active');
         });
-        document.getElementById('cancel-button').addEventListener('click', () => {
+        document.getElementById('cancel-button').addEventListener('click', async () => {
             actors = dataBackup.actors;
             webFunctionalities = dataBackup.webFunctionalities;
             mobileFunctionalities = dataBackup.mobileFunctionalities;
             setEditMode(false);
             if (editBtnCircle) editBtnCircle.classList.remove('edit-btn-active');
+            await fetchMatrixFromSheetDB();
+            renderContent();
         });
-        document.getElementById('reset-button').addEventListener('click', () => {
-            actors = JSON.parse(JSON.stringify(originalData.actors));
-            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
-            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
-            // Clear localStorage
-            localStorage.removeItem('privMatrixActors');
-            localStorage.removeItem('privMatrixWeb');
-            localStorage.removeItem('privMatrixMobile');
+        document.getElementById('reset-button').addEventListener('click', async () => {
+            await resetMatrixInSheetDB();
+            setEditMode(false);
             renderContent();
         });
 
@@ -292,17 +327,15 @@
             tbody.appendChild(newRow);
         });
 
-        document.getElementById('save-button').addEventListener('click', () => {
+        document.getElementById('save-button').addEventListener('click', async () => {
             const rows = document.querySelectorAll('#features-tbody tr');
             const newPermissionsForCurrentActor = {};
-            
             rows.forEach(row => {
                 const nameInput = row.querySelector('.feature-name-input');
                 const accessToggle = row.querySelector('.access-toggle');
                 const newName = nameInput.value.trim();
                 const originalName = row.dataset.featureName;
                 const hasAccess = accessToggle.checked;
-
                 if (row.dataset.isNew === "true") {
                     if (newName) {
                         const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
@@ -333,16 +366,18 @@
                     }
                 }
             });
-            
             actors[activeActor][activePlatform] = newPermissionsForCurrentActor;
-            // Save to localStorage
-            localStorage.setItem('privMatrixActors', JSON.stringify(actors));
-            localStorage.setItem('privMatrixWeb', JSON.stringify(webFunctionalities));
-            localStorage.setItem('privMatrixMobile', JSON.stringify(mobileFunctionalities));
+            await saveMatrixToSheetDB();
             setEditMode(false);
+            renderContent();
         });
 
-        renderContent();
+        // Initial load: fetch from SheetDB, then render
+        (async function() {
+            await fetchMatrixFromSheetDB();
+            activeActor = Object.keys(actors)[0];
+            renderContent();
+        })();
     </script>
 </body>
 </html>
