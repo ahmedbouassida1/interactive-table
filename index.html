@@ -182,20 +182,10 @@
                     }
                 });
 
-                if (actorsList.length > 0) {
+                if (actorsList.length > 0 && !activeActor) {
                     activeActor = actorsList[0].ActorName;
                 }
 
-                // **FIX:** Store the initial state ONLY IF it hasn't been stored before.
-                // This prevents overwriting the "factory settings" after a save.
-                if (Object.keys(originalData).length === 0) {
-                    originalData = {
-                        actors: JSON.parse(JSON.stringify(actors)),
-                        webFunctionalities: JSON.parse(JSON.stringify(webFunctionalities)),
-                        mobileFunctionalities: JSON.parse(JSON.stringify(mobileFunctionalities))
-                    };
-                }
-                
                 renderContent();
 
             } catch (error) {
@@ -313,11 +303,28 @@
             mobileFunctionalities = dataBackup.mobileFunctionalities;
             setEditMode(false);
         });
-        document.getElementById('reset-button').addEventListener('click', () => {
+        document.getElementById('reset-button').addEventListener('click', async () => {
+            // Confirm reset action
+            const confirmReset = confirm('Êtes-vous sûr de vouloir réinitialiser le tableau à son état initial ? Cette action est irréversible.');
+            if (!confirmReset) return;
+
+            // Reset actors, webFunctionalities, and mobileFunctionalities to their initial state
             actors = JSON.parse(JSON.stringify(originalData.actors));
             webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
             mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
+
+            // Reset active actor and platform
+            activeActor = Object.keys(actors)[0];
+            activePlatform = 'web';
+
+            // Save the reset state to SheetDB
+            await saveData();
+
+            // Re-render the content to reflect the reset state
             renderContent();
+
+            // Notify the user about the reset
+            alert('Le tableau a été réinitialisé à son état initial avec succès.');
         });
         document.getElementById('add-functionality-button').addEventListener('click', () => {
             const tbody = document.getElementById('features-tbody');
@@ -342,6 +349,7 @@
             mainContent.style.display = 'none';
 
             try {
+                // Prepare data to save
                 const funcsToSave = [
                     ...webFunctionalities.map(name => ({ FunctionalityName: name, Platform: 'Web' })),
                     ...mobileFunctionalities.map(name => ({ FunctionalityName: name, Platform: 'Mobile' }))
@@ -361,6 +369,7 @@
                     });
                 });
 
+                // Save functionalities and permissions to SheetDB
                 await fetch(`${SHEETDB_API_URL}/all?sheet=Functionalities`, { method: 'DELETE' });
                 await fetch(`${SHEETDB_API_URL}/all?sheet=Permissions`, { method: 'DELETE' });
 
@@ -377,11 +386,12 @@
 
                 alert('Modifications enregistrées avec succès !');
 
-            } catch(error) {
+            } catch (error) {
                 console.error("Save failed:", error);
                 alert("Erreur lors de l'enregistrement. Veuillez réessayer.");
             } finally {
-                await loadData();
+                loader.style.display = 'none';
+                mainContent.style.display = 'block';
             }
         }
 
