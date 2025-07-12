@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'DM Sans', sans-serif;
-            background-color: #f9fafb;
+            background-color: #e6fafe; /* Updated page background color */
             padding: 1.5rem;
         }
         .tab-active {
@@ -21,6 +21,13 @@
         .sub-tab-active {
             border-bottom: 2px solid #4f46e5;
             color: #4f46e5;
+        }
+        .table-header-text {
+            color: #333365;
+        }
+        /* Updated table row separator color */
+        .divide-y > :not([hidden]) ~ :not([hidden]) {
+            border-color: #d9d9fe;
         }
     </style>
 </head>
@@ -44,125 +51,127 @@
         </div>
     </div>
 
+    <footer class="text-center mt-8 text-sm text-gray-500">
+        <p>&copy; 2025 iLocker Tunisie. Tous droits réservés.</p>
+        <a href="https://ilocker.com.tn" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">ilocker.com.tn</a>
+    </footer>
+
     <script>
-        // Data structure for actors and their permissions
+        // --- Master Lists of Functionalities for Consistency ---
+        const webFunctionalities = [
+            "Authentification (Web)",
+            "Gestion des Utilisateurs",
+            "Visualisation Géolocalisée Appareils",
+            "Planification Interventions",
+            "Supervision Interventions",
+            "Attribuer des interventions",
+            "Consultation Historique Interventions",
+            "Export Rapports Interventions",
+            "Notifications & Alertes (Web)",
+            "Création/Approbation Actualités",
+            "Reporting",
+            "Enregistrement des chauffe-eaux fabriqués",
+            "Déclaration des ventes"
+        ];
+
+        const mobileFunctionalities = [
+            "Authentification (Mobile)",
+            "Notifications & Alertes (Mobile)",
+            "Consultation Actualités (Mobile)",
+            "Enregistrement Appareils",
+            "Exécution Interventions",
+            "Suivi détaillé Interventions",
+            "Scan de QR Code",
+            "Consultation Historique Interventions (Mobile)",
+            "Déclaration des Ventes"
+        ];
+
+        // --- Data structure for actors and their permissions ---
         const actors = {
             "ANME": {
-                web: [
-                    { feature: "Gestion des Utilisateurs", access: true },
-                    { feature: "Planification Interventions", access: true },
-                    { feature: "Attribuer des interventions", access: true },
-                    { feature: "Authentification (Web)", access: false },
-                    { feature: "Visualisation Géolocalisée Appareils", access: false },
-                    { feature: "Supervision Interventions", access: false },
-                ],
-                mobile: [
-                    { feature: "Authentification (Mobile)", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Enregistrement Appareils", access: true },
-                    { feature: "Consultation Actualités", access: false },
-                ]
+                web: {
+                    "Authentification (Web)": true,
+                    "Visualisation Géolocalisée Appareils": true,
+                    "Supervision Interventions": false,
+                },
+                mobile: {
+                    "Authentification (Mobile)": true,
+                    "Notifications & Alertes (Mobile)": true,
+                    "Enregistrement Appareils": true,
+                }
             },
             "Usine": {
-                web: [
-                    { feature: "Gestion des Utilisateurs", access: true },
-                    { feature: "Planification Interventions", access: true },
-                    { feature: "Supervision Interventions", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Création/Approbation Actualités", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                ],
-                mobile: [
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Authentification (Mobile)", access: false },
-                    { feature: "Notifications & Alertes", access: false },
-                ]
+                web: {
+                    "Authentification (Web)": true,
+                    "Enregistrement des chauffe-eaux fabriqués": true,
+                    "Reporting": true,
+                },
+                mobile: {}
             },
             "Administrateur Système": {
-                web: [
-                    { feature: "Reporting Avancé", access: true },
-                    { feature: "Générateur d'Actualités IA", access: true },
-                    { feature: "Authentification (Web)", access: false },
-                    { feature: "Gestion des Utilisateurs", access: false },
-                ],
-                mobile: [
-                    { feature: "Authentification (Mobile)", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Enregistrement Appareils", access: true },
-                ]
+                web: {
+                    "Authentification (Web)": true,
+                    "Gestion des Utilisateurs": true,
+                    "Planification Interventions": true,
+                    "Supervision Interventions": true,
+                    "Déclaration des ventes": true,
+                    "Reporting": true,
+                    "Attribuer des interventions": true,
+                    "Consultation Historique Interventions": true,
+                    "Export Rapports Interventions": true,
+                    "Notifications & Alertes (Web)": true,
+                },
+                mobile: {
+                    "Authentification (Mobile)": true,
+                    "Notifications & Alertes (Mobile)": true,
+                    "Enregistrement Appareils": true,
+                    "Déclaration des Ventes": true,
+                }
             },
             "Installateur Agréé": {
-                web: [
-                    { feature: "Authentification (Web)", access: true },
-                    { feature: "Visualisation Géolocalisée Appareils", access: true },
-                    { feature: "Planification Interventions", access: true },
-                    { feature: "Supervision Interventions", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Export Rapports Interventions", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Création/Approbation Actualités", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Reporting Avancé", access: true },
-                ],
-                mobile: [
-                    { feature: "Authentification (Mobile)", access: true },
-                    { feature: "Exécution Interventions", access: true },
-                    { feature: "Suivi détaillé Interventions", access: true },
-                    { feature: "Scan de QR Code", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Assistant de Diagnostic IA", access: true },
-                    { feature: "Déclaration des Ventes", access: true },
-                ]
+                web: {
+                    "Authentification (Web)": true,
+                    "Visualisation Géolocalisée Appareils": true,
+                    "Planification Interventions": true,
+                    "Supervision Interventions": false,
+                    "Consultation Historique Interventions": true,
+                    "Export Rapports Interventions": true,
+                    "Notifications & Alertes (Web)": true,
+                    "Création/Approbation Actualités": true,
+                    "Déclaration des ventes": true,
+                },
+                mobile: {
+                    "Authentification (Mobile)": true,
+                    "Exécution Interventions": true,
+                    "Suivi détaillé Interventions": true,
+                    "Scan de QR Code": true,
+                    "Consultation Historique Interventions (Mobile)": true,
+                    "Notifications & Alertes (Mobile)": true,
+                    "Consultation Actualités (Mobile)": true,
+                    "Déclaration des Ventes": true,
+                }
             },
             "Réparateur Agréé": {
-                web: [
-                    { feature: "Authentification (Web)", access: true },
-                    { feature: "Visualisation Géolocalisée Appareils", access: true },
-                    { feature: "Planification Interventions", access: true },
-                    { feature: "Supervision Interventions", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Export Rapports Interventions", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Création/Approbation Actualités", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Reporting Avancé", access: true },
-                ],
-                mobile: [
-                    { feature: "Authentification (Mobile)", access: true },
-                    { feature: "Exécution Interventions", access: true },
-                    { feature: "Suivi détaillé Interventions", access: true },
-                    { feature: "Scan de QR Code", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Assistant de Diagnostic IA", access: true },
-                    { feature: "Déclaration des Ventes", access: false },
-                ]
-            },
-            "Technicien de Maintenance": {
-                web: [],
-                mobile: [
-                    { feature: "Authentification (Mobile)", access: true },
-                    { feature: "Exécution Interventions", access: true },
-                    { feature: "Suivi détaillé Interventions", access: true },
-                    { feature: "Scan de QR Code", access: true },
-                    { feature: "Consultation Historique Interventions", access: true },
-                    { feature: "Notifications & Alertes", access: true },
-                    { feature: "Consultation Actualités", access: true },
-                    { feature: "Visualisation Facteurs Environnementaux", access: true },
-                    { feature: "Assistant de Diagnostic IA", access: true },
-                    { feature: "Déclaration des Ventes", access: false },
-                ]
+                web: {
+                    "Authentification (Web)": true,
+                    "Visualisation Géolocalisée Appareils": true,
+                    "Planification Interventions": true,
+                    "Supervision Interventions": false,
+                    "Consultation Historique Interventions": true,
+                    "Export Rapports Interventions": true,
+                    "Notifications & Alertes (Web)": true,
+                    "Création/Approbation Actualités": true,
+                },
+                mobile: {
+                    "Authentification (Mobile)": true,
+                    "Exécution Interventions": true,
+                    "Suivi détaillé Interventions": true,
+                    "Scan de QR Code": true,
+                    "Consultation Historique Interventions (Mobile)": true,
+                    "Notifications & Alertes (Mobile)": true,
+                    "Consultation Actualités (Mobile)": true,
+                    "Déclaration des Ventes": false,
+                }
             }
         };
 
@@ -170,9 +179,25 @@
         const contentContainer = document.getElementById('tab-content');
         let activeActor = Object.keys(actors)[0];
         let activePlatform = 'web';
+        let sortOrder = 'none'; // 'none', 'desc' (valid first), 'asc' (invalid first)
 
         function renderContent() {
-            const actorData = actors[activeActor];
+            const actorPermissions = actors[activeActor][activePlatform];
+            let masterList = [...(activePlatform === 'web' ? webFunctionalities : mobileFunctionalities)];
+
+            // Sorting logic
+            if (sortOrder !== 'none') {
+                masterList.sort((a, b) => {
+                    const accessA = actorPermissions[a] || false;
+                    const accessB = actorPermissions[b] || false;
+                    if (sortOrder === 'desc') {
+                        return (accessB - accessA); // true (1) comes before false (0)
+                    } else {
+                        return (accessA - accessB); // false (0) comes before true (1)
+                    }
+                });
+            }
+
             const subTabsHTML = `
                 <div class="border-b border-gray-200 mb-6">
                     <nav class="flex space-x-4" aria-label="Sub-tabs">
@@ -181,29 +206,39 @@
                     </nav>
                 </div>
             `;
-            const platformData = actorData[activePlatform];
+
             let tableHTML = '<p class="text-gray-500">Aucune fonctionnalité pour cette plateforme.</p>';
-            if (platformData && platformData.length > 0) {
+            if (masterList.length > 0) {
                 tableHTML = `
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead class="bg-indigo-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-indigo-800 uppercase tracking-wider">Fonctionnalité</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-indigo-800 uppercase tracking-wider">Accès</th>
+                                    <th scope="col" class="table-header-text px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Fonctionnalité</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                                        <div class="table-header-text flex items-center justify-center space-x-2">
+                                            <span>Accès</span>
+                                            <button id="sort-button" class="p-1 rounded-full hover:bg-indigo-200">
+                                                <svg class="w-4 h-4" style="color: #333365;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+                                            </button>
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                ${platformData.map(item => `
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${item.feature}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                            ${item.access 
-                                                ? '<span class="text-green-600 font-bold text-xl">✓</span>' 
-                                                : '<span class="text-red-500 font-bold text-xl">✗</span>'}
-                                        </td>
-                                    </tr>
-                                `).join('')}
+                            <tbody class="bg-white divide-y">
+                                ${masterList.map(featureName => {
+                                    const hasAccess = actorPermissions[featureName] || false;
+                                    return `
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-800">${featureName}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                ${hasAccess 
+                                                    ? '<span class="text-green-600 font-bold text-2xl">✓</span>' 
+                                                    : '<span class="text-red-500 font-bold text-2xl">✗</span>'}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -211,6 +246,18 @@
             }
             contentContainer.innerHTML = subTabsHTML + tableHTML;
             renderMainTabs();
+            
+            // Add event listener to the new sort button
+            document.getElementById('sort-button').addEventListener('click', () => {
+                if (sortOrder === 'none') {
+                    sortOrder = 'desc';
+                } else if (sortOrder === 'desc') {
+                    sortOrder = 'asc';
+                } else {
+                    sortOrder = 'none';
+                }
+                renderContent();
+            });
         }
         
         function renderMainTabs() {
@@ -223,12 +270,14 @@
 
         window.setActor = function(actorName) {
             activeActor = actorName;
-            activePlatform = 'web'; 
+            activePlatform = 'web';
+            sortOrder = 'none'; // Reset sort when changing actor
             renderContent();
         }
 
         window.setPlatform = function(platformName) {
             activePlatform = platformName;
+            sortOrder = 'none'; // Reset sort when changing platform
             renderContent();
         }
 
