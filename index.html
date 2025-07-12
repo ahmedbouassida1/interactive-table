@@ -18,14 +18,6 @@
             background-color: #4338ca;
             color: white;
         }
-        .edit-btn {
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-        .edit-btn:hover,
-        .edit-btn-active {
-            background: #d0edfd;
-        }
         .sub-tab-active {
             border-bottom: 2px solid #4f46e5;
             color: #4f46e5;
@@ -75,119 +67,147 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+        #loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4f46e5;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div id="privilege-matrix" class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="p-6 sm:p-8">
-            <div class="flex justify-between items-center mb-2">
-                 <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">Tableau des Privilèges et Accès</h1>
-                 <button id="edit-button" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                    <span id="edit-btn-circle" class="edit-btn">
+    <div id="loader"></div>
+    <div id="main-content" style="display: none;">
+        <div id="privilege-matrix" class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 sm:p-8">
+                <div class="flex justify-between items-center mb-2">
+                     <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">Tableau des Privilèges et Accès</h1>
+                     <button id="edit-button" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                    </span>
-                 </button>
+                     </button>
+                </div>
+                <p class="text-gray-500">Naviguez entre les acteurs et les plateformes pour voir les permissions.</p>
             </div>
-            <p class="text-gray-500">Naviguez entre les acteurs et les plateformes pour voir les permissions.</p>
+
+            <div class="px-6 sm:px-8 border-b border-gray-200">
+                <nav id="main-tabs" class="flex flex-wrap -mb-px" aria-label="Tabs">
+                </nav>
+            </div>
+
+            <div id="tab-content" class="p-6 sm:p-8">
+            </div>
+            
+            <div id="edit-controls-container" class="p-6 sm:p-8 flex justify-between items-center" style="display: none;">
+                <button id="add-functionality-button" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors">Ajouter une fonctionnalité</button>
+                <div class="flex items-center space-x-4">
+                    <button id="reset-button" class="text-sm font-medium text-gray-600 hover:text-gray-800">Réinitialiser</button>
+                    <button id="cancel-button" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Annuler</button>
+                    <button id="save-button" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Enregistrer</button>
+                </div>
+            </div>
         </div>
 
-        <div class="px-6 sm:px-8 border-b border-gray-200">
-            <nav id="main-tabs" class="flex flex-wrap -mb-px" aria-label="Tabs">
-            </nav>
-        </div>
-
-        <div id="tab-content" class="p-6 sm:p-8">
-        </div>
-        
-        <div id="edit-controls-container" class="p-6 sm:p-8 flex justify-between items-center" style="display: none;">
-            <button id="add-functionality-button" class="bg-green-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors">Ajouter une fonctionnalité</button>
-            <div class="flex items-center space-x-4">
-                <button id="reset-button" class="text-sm font-medium text-gray-600 hover:text-gray-800">Réinitialiser</button>
-                <button id="cancel-button" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">Annuler</button>
-                <button id="save-button" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Enregistrer</button>
-            </div>
-        </div>
+        <footer class="text-center mt-8 text-sm text-gray-500">
+            <p>&copy; 2025 iLocker Tunisie. Tous droits réservés.</p>
+            <a href="https://ilocker.com.tn" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">ilocker.com.tn</a>
+        </footer>
     </div>
 
-    <footer class="text-center mt-8 text-sm text-gray-500">
-        <p>&copy; 2025 iLocker Tunisie. Tous droits réservés.</p>
-        <a href="https://ilocker.com.tn" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline">ilocker.com.tn</a>
-    </footer>
-
     <script>
-        const originalData = {
-            webFunctionalities: [ "Authentification (Web)", "Gestion des Utilisateurs", "Visualisation Géolocalisée Appareils", "Planification Interventions", "Supervision Interventions", "Attribuer des interventions", "Consultation Historique Interventions", "Export Rapports Interventions", "Notifications & Alertes (Web)", "Création/Approbation Actualités", "Reporting", "Enregistrement des chauffe-eaux fabriqués", "Déclaration des ventes" ],
-            mobileFunctionalities: [ "Authentification (Mobile)", "Notifications & Alertes (Mobile)", "Consultation Actualités (Mobile)", "Enregistrement Appareils", "Exécution Interventions", "Suivi détaillé Interventions", "Scan de QR Code", "Consultation Historique Interventions (Mobile)", "Déclaration des Ventes" ],
-            actors: { "ANME": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true } }, "Usine": { web: { "Authentification (Web)": true, "Enregistrement des chauffe-eaux fabriqués": true, "Reporting": true }, mobile: {} }, "Administrateur Système": { web: { "Authentification (Web)": true, "Gestion des Utilisateurs": true, "Planification Interventions": true, "Supervision Interventions": true, "Déclaration des ventes": true, "Reporting": true, "Attribuer des interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true }, mobile: { "Authentification (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Enregistrement Appareils": true, "Déclaration des Ventes": true } }, "Installateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true, "Déclaration des ventes": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true, "Déclaration des Ventes": true } }, "Réparateur Agréé": { web: { "Authentification (Web)": true, "Visualisation Géolocalisée Appareils": true, "Planification Interventions": true, "Consultation Historique Interventions": true, "Export Rapports Interventions": true, "Notifications & Alertes (Web)": true, "Création/Approbation Actualités": true }, mobile: { "Authentification (Mobile)": true, "Exécution Interventions": true, "Suivi détaillé Interventions": true, "Scan de QR Code": true, "Consultation Historique Interventions (Mobile)": true, "Notifications & Alertes (Mobile)": true, "Consultation Actualités (Mobile)": true } } }
-        };
+        // --- IMPORTANT: This is your live API URL ---
+        const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/2tn3l6sqsyhrs'; 
 
-        // SheetDB API endpoint
-        const SHEETDB_API = "https://sheetdb.io/api/v1/2tn3l6sqsyhrs";
-
-        let webFunctionalities = [], mobileFunctionalities = [], actors = {};
-        let dataBackup = {};
-
-        // Helper: fetch privilege matrix from SheetDB
-        async function fetchMatrixFromSheetDB() {
-            try {
-                const res = await fetch(SHEETDB_API + "/search?key=type&value=matrix");
-                const data = await res.json();
-                if (data && data.length > 0 && data[0].json) {
-                    const parsed = JSON.parse(data[0].json);
-                    actors = parsed.actors;
-                    webFunctionalities = parsed.webFunctionalities;
-                    mobileFunctionalities = parsed.mobileFunctionalities;
-                } else {
-                    // If not found, use originalData
-                    actors = JSON.parse(JSON.stringify(originalData.actors));
-                    webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
-                    mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
-                }
-            } catch (e) {
-                // On error, fallback to originalData
-                actors = JSON.parse(JSON.stringify(originalData.actors));
-                webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
-                mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
-            }
-        }
-
-        // Helper: save privilege matrix to SheetDB
-        async function saveMatrixToSheetDB() {
-            const payload = {
-                type: "matrix",
-                json: JSON.stringify({ actors, webFunctionalities, mobileFunctionalities })
-            };
-            // Upsert: delete old, then add new (SheetDB free plan limitation)
-            await fetch(SHEETDB_API + "/type/matrix", { method: "DELETE" });
-            await fetch(SHEETDB_API, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify([payload])
-            });
-        }
-
-        // Helper: reset matrix in SheetDB to originalData
-        async function resetMatrixInSheetDB() {
-            actors = JSON.parse(JSON.stringify(originalData.actors));
-            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
-            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
-            await saveMatrixToSheetDB();
-        }
+        // --- Live Data (will be fetched from SheetDB) ---
+        let webFunctionalities = [];
+        let mobileFunctionalities = [];
+        let actors = {};
+        let originalData = {}; // Will store the initial "factory settings"
+        let dataBackup = {}; // For the cancel button
 
         const mainTabsContainer = document.getElementById('main-tabs');
         const contentContainer = document.getElementById('tab-content');
         const editControlsContainer = document.getElementById('edit-controls-container');
+        const loader = document.getElementById('loader');
+        const mainContent = document.getElementById('main-content');
         
-let activeActor = null;
-let activePlatform = 'web';
-let sortOrder = 'none';
-let isEditMode = false;
+        let activeActor = '';
+        let activePlatform = 'web';
+        let sortOrder = 'none';
+        let isEditMode = false;
 
-        function renderContent() {
-            if (!activeActor || !actors[activeActor]) {
-                contentContainer.innerHTML = '<p class="text-gray-500">Chargement des données...</p>';
+        async function loadData() {
+            if (!SHEETDB_API_URL || SHEETDB_API_URL === 'YOUR_SHEETDB_API_URL_HERE') {
+                alert('Please paste your SheetDB API URL into the script first.');
+                loader.style.display = 'none';
                 return;
             }
+
+            try {
+                loader.style.display = 'block';
+                mainContent.style.display = 'none';
+
+                const [actorsRes, funcsRes, permsRes] = await Promise.all([
+                    fetch(`${SHEETDB_API_URL}?sheet=Actors`),
+                    fetch(`${SHEETDB_API_URL}?sheet=Functionalities`),
+                    fetch(`${SHEETDB_API_URL}?sheet=Permissions`)
+                ]);
+
+                const actorsList = await actorsRes.json();
+                const funcsList = await funcsRes.json();
+                const permsList = await permsRes.json();
+
+                // Process data from SheetDB into the required format
+                webFunctionalities = funcsList.filter(f => f.Platform === 'Web').map(f => f.FunctionalityName);
+                mobileFunctionalities = funcsList.filter(f => f.Platform === 'Mobile').map(f => f.FunctionalityName);
+                
+                actors = {};
+                actorsList.forEach(actor => {
+                    actors[actor.ActorName] = { web: {}, mobile: {} };
+                });
+
+                permsList.forEach(perm => {
+                    if (actors[perm.ActorName]) {
+                        const platform = webFunctionalities.includes(perm.FunctionalityName) ? 'web' : 'mobile';
+                        actors[perm.ActorName][platform][perm.FunctionalityName] = true;
+                    }
+                });
+
+                if (actorsList.length > 0) {
+                    activeActor = actorsList[0].ActorName;
+                }
+
+                // **FIX:** Store the initial state ONLY IF it hasn't been stored before.
+                // This prevents overwriting the "factory settings" after a save.
+                if (Object.keys(originalData).length === 0) {
+                    originalData = {
+                        actors: JSON.parse(JSON.stringify(actors)),
+                        webFunctionalities: JSON.parse(JSON.stringify(webFunctionalities)),
+                        mobileFunctionalities: JSON.parse(JSON.stringify(mobileFunctionalities))
+                    };
+                }
+                
+                renderContent();
+
+            } catch (error) {
+                console.error("Failed to load data from SheetDB:", error);
+                alert("Error loading data. Check your SheetDB URL and sheet permissions.");
+            } finally {
+                loader.style.display = 'none';
+                mainContent.style.display = 'block';
+            }
+        }
+
+        function renderContent() {
             const actorPermissions = actors[activeActor][activePlatform];
             let masterList = [...(activePlatform === 'web' ? webFunctionalities : mobileFunctionalities)];
 
@@ -268,7 +288,7 @@ let isEditMode = false;
                 </button>
             `).join('');
         }
-
+        
         function setEditMode(enabled) {
             isEditMode = enabled;
             sortOrder = 'none';
@@ -279,9 +299,6 @@ let isEditMode = false;
                     webFunctionalities: JSON.parse(JSON.stringify(webFunctionalities)),
                     mobileFunctionalities: JSON.parse(JSON.stringify(mobileFunctionalities))
                 };
-                if (editBtnCircle) editBtnCircle.classList.add('edit-btn-active');
-            } else {
-                if (editBtnCircle) editBtnCircle.classList.remove('edit-btn-active');
             }
             renderContent();
         }
@@ -289,26 +306,19 @@ let isEditMode = false;
         window.setActor = (actorName) => { if (!isEditMode) { activeActor = actorName; activePlatform = 'web'; renderContent(); } }
         window.setPlatform = (platformName) => { if (!isEditMode) { activePlatform = platformName; renderContent(); } }
 
-        const editBtnCircle = document.getElementById('edit-btn-circle');
-        document.getElementById('edit-button').addEventListener('click', () => {
-            setEditMode(true);
-            if (editBtnCircle) editBtnCircle.classList.add('edit-btn-active');
-        });
-        document.getElementById('cancel-button').addEventListener('click', async () => {
+        document.getElementById('edit-button').addEventListener('click', () => setEditMode(true));
+        document.getElementById('cancel-button').addEventListener('click', () => {
             actors = dataBackup.actors;
             webFunctionalities = dataBackup.webFunctionalities;
             mobileFunctionalities = dataBackup.mobileFunctionalities;
             setEditMode(false);
-            if (editBtnCircle) editBtnCircle.classList.remove('edit-btn-active');
-            await fetchMatrixFromSheetDB();
+        });
+        document.getElementById('reset-button').addEventListener('click', () => {
+            actors = JSON.parse(JSON.stringify(originalData.actors));
+            webFunctionalities = JSON.parse(JSON.stringify(originalData.webFunctionalities));
+            mobileFunctionalities = JSON.parse(JSON.stringify(originalData.mobileFunctionalities));
             renderContent();
         });
-        document.getElementById('reset-button').addEventListener('click', async () => {
-            await resetMatrixInSheetDB();
-            setEditMode(false);
-            renderContent();
-        });
-
         document.getElementById('add-functionality-button').addEventListener('click', () => {
             const tbody = document.getElementById('features-tbody');
             const newRow = document.createElement('tr');
@@ -327,59 +337,113 @@ let isEditMode = false;
             tbody.appendChild(newRow);
         });
 
+        async function saveData() {
+            loader.style.display = 'block';
+            mainContent.style.display = 'none';
+
+            try {
+                const funcsToSave = [
+                    ...webFunctionalities.map(name => ({ FunctionalityName: name, Platform: 'Web' })),
+                    ...mobileFunctionalities.map(name => ({ FunctionalityName: name, Platform: 'Mobile' }))
+                ];
+
+                const permsToSave = [];
+                Object.keys(actors).forEach(actorName => {
+                    Object.keys(actors[actorName].web).forEach(funcName => {
+                        if (actors[actorName].web[funcName]) {
+                            permsToSave.push({ ActorName: actorName, FunctionalityName: funcName });
+                        }
+                    });
+                    Object.keys(actors[actorName].mobile).forEach(funcName => {
+                        if (actors[actorName].mobile[funcName]) {
+                            permsToSave.push({ ActorName: actorName, FunctionalityName: funcName });
+                        }
+                    });
+                });
+
+                await fetch(`${SHEETDB_API_URL}/all?sheet=Functionalities`, { method: 'DELETE' });
+                await fetch(`${SHEETDB_API_URL}/all?sheet=Permissions`, { method: 'DELETE' });
+
+                await fetch(`${SHEETDB_API_URL}?sheet=Functionalities`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: funcsToSave })
+                });
+                await fetch(`${SHEETDB_API_URL}?sheet=Permissions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: permsToSave })
+                });
+
+                alert('Modifications enregistrées avec succès !');
+
+            } catch(error) {
+                console.error("Save failed:", error);
+                alert("Erreur lors de l'enregistrement. Veuillez réessayer.");
+            } finally {
+                await loadData();
+            }
+        }
+
         document.getElementById('save-button').addEventListener('click', async () => {
             const rows = document.querySelectorAll('#features-tbody tr');
-            const newPermissionsForCurrentActor = {};
+            const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
+            
+            const featureChanges = [];
             rows.forEach(row => {
                 const nameInput = row.querySelector('.feature-name-input');
-                const accessToggle = row.querySelector('.access-toggle');
                 const newName = nameInput.value.trim();
-                const originalName = row.dataset.featureName;
-                const hasAccess = accessToggle.checked;
-                if (row.dataset.isNew === "true") {
-                    if (newName) {
-                        const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
-                        if (!masterList.includes(newName)) {
-                            masterList.push(newName);
-                        }
-                        Object.keys(actors).forEach(actor => {
-                            actors[actor][activePlatform][newName] = (actor === activeActor) ? hasAccess : false;
-                        });
-                        newPermissionsForCurrentActor[newName] = hasAccess;
-                    }
-                } else {
-                    // Handle renaming of existing functionality
-                    const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
-                    if (newName && newName !== originalName) {
-                        // Update master list
-                        const idx = masterList.indexOf(originalName);
-                        if (idx !== -1) masterList[idx] = newName;
-                        // Update all actors' permissions
-                        Object.keys(actors).forEach(actor => {
-                            const perms = actors[actor][activePlatform];
-                            perms[newName] = perms[originalName];
-                            delete perms[originalName];
-                        });
-                        newPermissionsForCurrentActor[newName] = hasAccess;
-                    } else {
-                        newPermissionsForCurrentActor[originalName] = hasAccess;
-                    }
+                if (newName) {
+                    featureChanges.push({
+                        newName: newName,
+                        originalName: row.dataset.featureName,
+                        hasAccess: row.querySelector('.access-toggle').checked,
+                        isNew: row.dataset.isNew === "true"
+                    });
                 }
             });
-            actors[activeActor][activePlatform] = newPermissionsForCurrentActor;
-            await saveMatrixToSheetDB();
+
+            // Process renames first
+            featureChanges.forEach(change => {
+                if (!change.isNew && change.originalName !== change.newName) {
+                    const idx = masterList.indexOf(change.originalName);
+                    if (idx > -1) masterList[idx] = change.newName;
+
+                    Object.keys(actors).forEach(actorKey => {
+                        const perms = actors[actorKey][activePlatform];
+                        if (perms.hasOwnProperty(change.originalName)) {
+                            perms[change.newName] = perms[change.originalName];
+                            delete perms[change.originalName];
+                        }
+                    });
+                }
+            });
+
+            // Process new features
+            featureChanges.forEach(change => {
+                if (change.isNew) {
+                    if (!masterList.includes(change.newName)) {
+                        masterList.push(change.newName);
+                    }
+                    Object.keys(actors).forEach(actorKey => {
+                        actors[actorKey][activePlatform][change.newName] = false;
+                    });
+                }
+            });
+
+            // Rebuild permissions for the current actor
+            const newPermissions = {};
+            featureChanges.forEach(change => {
+                newPermissions[change.newName] = change.hasAccess;
+            });
+            actors[activeActor][activePlatform] = newPermissions;
+
+            await saveData();
             setEditMode(false);
-            await fetchMatrixFromSheetDB();
-            activeActor = Object.keys(actors)[0];
-            renderContent();
         });
 
-        // Initial load: fetch from SheetDB, then render
-        (async function() {
-            await fetchMatrixFromSheetDB();
-            activeActor = Object.keys(actors)[0];
-            renderContent();
-        })();
+        // Initial load
+        loadData();
     </script>
 </body>
 </html>
