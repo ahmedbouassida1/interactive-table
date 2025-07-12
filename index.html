@@ -279,8 +279,22 @@
                         newPermissionsForCurrentActor[newName] = hasAccess;
                     }
                 } else {
-                    const currentName = originalName;
-                    newPermissionsForCurrentActor[currentName] = hasAccess;
+                    // Handle renaming of existing functionality
+                    const masterList = activePlatform === 'web' ? webFunctionalities : mobileFunctionalities;
+                    if (newName && newName !== originalName) {
+                        // Update master list
+                        const idx = masterList.indexOf(originalName);
+                        if (idx !== -1) masterList[idx] = newName;
+                        // Update all actors' permissions
+                        Object.keys(actors).forEach(actor => {
+                            const perms = actors[actor][activePlatform];
+                            perms[newName] = perms[originalName];
+                            delete perms[originalName];
+                        });
+                        newPermissionsForCurrentActor[newName] = hasAccess;
+                    } else {
+                        newPermissionsForCurrentActor[originalName] = hasAccess;
+                    }
                 }
             });
             
